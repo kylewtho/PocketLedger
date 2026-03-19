@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
-import { SideNav } from "@/components/navigation/SideNav";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = {
@@ -17,12 +16,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <div className="flex min-h-screen">
-            <SideNav />
-            <main className="flex-1 p-6 overflow-auto">
-              {children}
-            </main>
-          </div>
+          {children}
         </ThemeProvider>
       </body>
     </html>

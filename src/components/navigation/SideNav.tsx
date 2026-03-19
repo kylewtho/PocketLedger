@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Wallet, BookOpen, Settings, PiggyBank } from "lucide-react";
+import { LayoutDashboard, Wallet, BookOpen, Settings, PiggyBank, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { logout } from "@/app/actions/auth";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -44,6 +45,17 @@ export function SideNav() {
           );
         })}
       </nav>
+      <div className="p-4 border-t border-border">
+        <form action={logout}>
+          <button
+            type="submit"
+            className="flex w-full items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+            Log out
+          </button>
+        </form>
+      </div>
     </aside>
   );
 }

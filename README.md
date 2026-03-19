@@ -9,6 +9,7 @@ A personal finance tracker built with Next.js 15, TypeScript, and Tailwind CSS.
 - 📝 Transaction entries
 - 🌙 Dark/light mode
 - 📱 Responsive layout
+- 🔐 PIN-based access protection
 
 ## Tech Stack
 
@@ -42,7 +43,7 @@ A personal finance tracker built with Next.js 15, TypeScript, and Tailwind CSS.
    npm install
    ```
 
-3. Copy the environment file and fill in your Supabase credentials:
+3. Copy the environment file and fill in your credentials:
    ```bash
    cp .env.example .env.local
    ```
@@ -53,7 +54,20 @@ A personal finance tracker built with Next.js 15, TypeScript, and Tailwind CSS.
    ```
    Both values are available in your Supabase project under **Settings → API**.
 
-4. Apply the database migrations in the Supabase SQL editor (or via the Supabase CLI):
+4. Configure PIN-based access:
+
+   a. Generate a random session secret and add it to `.env.local`:
+   ```bash
+   echo "SESSION_SECRET=$(openssl rand -hex 32)" >> .env.local
+   ```
+
+   b. Hash your chosen PIN using the session secret and append the result to `.env.local`:
+   ```bash
+   node -e "require('./src/lib/auth').hashPin('YOUR_PIN').then(h => console.log('PIN_HASH=' + h))" >> .env.local
+   ```
+   Replace `YOUR_PIN` with the PIN you want to use (e.g. a 4–8 digit number).
+
+5. Apply the database migrations in the Supabase SQL editor (or via the Supabase CLI):
    ```bash
    # With the Supabase CLI (recommended)
    supabase db push
@@ -65,7 +79,7 @@ A personal finance tracker built with Next.js 15, TypeScript, and Tailwind CSS.
    #   supabase/migrations/004_create_exchange_rate_cache.sql
    ```
 
-5. (Optional) Load sample data:
+6. (Optional) Load sample data:
    ```bash
    # With the Supabase CLI
    supabase db seed

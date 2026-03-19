@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { LogoutButton } from "@/components/auth/LogoutButton";
 
 export default function SettingsPage() {
   return (
@@ -22,9 +23,12 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle>Security</CardTitle>
           </CardHeader>
-          <CardContent>
-            {/* TODO: Implement PIN auth */}
-            <p className="text-muted-foreground">PIN authentication coming soon.</p>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              PocketLedger uses a shared PIN to protect access to your data.
+              {/* TODO: Add PIN change form when full user auth is implemented */}
+            </p>
+            <LogoutButton />
           </CardContent>
         </Card>
         <Card>

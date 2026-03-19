@@ -8,7 +8,7 @@ PocketLedger is a personal finance tracker. See [PRODUCT_SPEC.md](./PRODUCT_SPEC
 
 ## Current State
 
-- [x] Next.js 14 App Router scaffold
+- [x] Next.js 15 App Router scaffold
 - [x] Tailwind CSS configured
 - [x] Base layout with SideNav
 - [x] Placeholder pages for all routes

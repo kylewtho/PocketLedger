@@ -4,7 +4,7 @@
 
 | Layer        | Technology              |
 |--------------|-------------------------|
-| Framework    | Next.js 14 (App Router) |
+| Framework    | Next.js 15 (App Router) |
 | Language     | TypeScript              |
 | Styling      | Tailwind CSS            |
 | Theming      | next-themes             |
@@ -48,7 +48,7 @@ Page Component
 
 ## Key Decisions
 
-### App Router (Next.js 14)
+### App Router (Next.js 15)
 Using the App Router for better layouts, server components, and future streaming support.
 
 ### Supabase

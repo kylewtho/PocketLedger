@@ -2,15 +2,16 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardContent } from "@/components/ui/Card";
 
 interface AccountDetailPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default function AccountDetailPage({ params }: AccountDetailPageProps) {
+export default async function AccountDetailPage({ params }: AccountDetailPageProps) {
+  const { id } = await params;
   return (
     <div>
       <PageHeader
         title="Account Details"
-        description={`Account ID: ${params.id}`}
+        description={`Account ID: ${id}`}
       />
       <Card>
         <CardContent>

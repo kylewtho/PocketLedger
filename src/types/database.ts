@@ -65,16 +65,39 @@ export type Database = {
         Row: Workspace;
         Insert: Partial<Pick<Workspace, "id" | "created_at" | "updated_at">> & NewWorkspace;
         Update: Partial<NewWorkspace>;
+        Relationships: [];
       };
       accounts: {
         Row: Account;
         Insert: Partial<Pick<Account, "id" | "created_at" | "updated_at">> & NewAccount;
         Update: Partial<NewAccount>;
+        Relationships: [
+          {
+            foreignKeyName: "accounts_workspace_id_fkey";
+            columns: ["workspace_id"];
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       entries: {
         Row: Entry;
         Insert: Partial<Pick<Entry, "id" | "created_at" | "updated_at">> & NewEntry;
         Update: Partial<NewEntry>;
+        Relationships: [
+          {
+            foreignKeyName: "entries_workspace_id_fkey";
+            columns: ["workspace_id"];
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "entries_account_id_fkey";
+            columns: ["account_id"];
+            referencedRelation: "accounts";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       exchange_rate_cache: {
         Row: ExchangeRateCache;
@@ -82,7 +105,12 @@ export type Database = {
           Partial<Pick<ExchangeRateCache, "id" | "fetched_at">> &
           Omit<ExchangeRateCache, "id" | "fetched_at">;
         Update: Partial<Omit<ExchangeRateCache, "id">>;
+        Relationships: [];
       };
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
 };

@@ -10,7 +10,7 @@ export async function getWorkspaceBaseCurrency(): Promise<string> {
     .eq("id", DEFAULT_WORKSPACE_ID)
     .maybeSingle();
 
-  return data?.base_currency ?? DEFAULT_BASE_CURRENCY;
+  return (data as Pick<Account, never> & { base_currency?: string } | null)?.base_currency ?? DEFAULT_BASE_CURRENCY;
 }
 
 export async function getAccounts(options?: { includeArchived?: boolean }): Promise<Account[]> {
@@ -30,7 +30,7 @@ export async function getAccounts(options?: { includeArchived?: boolean }): Prom
     throw new Error(`Failed to load accounts: ${error.message}`);
   }
 
-  return data ?? [];
+  return (data as Account[] | null) ?? [];
 }
 
 export async function getEntries(options?: { accountId?: string; limit?: number }): Promise<Entry[]> {
@@ -54,7 +54,7 @@ export async function getEntries(options?: { accountId?: string; limit?: number 
     throw new Error(`Failed to load entries: ${error.message}`);
   }
 
-  return data ?? [];
+  return (data as Entry[] | null) ?? [];
 }
 
 export async function getAccountById(id: string): Promise<Account | null> {
@@ -69,7 +69,7 @@ export async function getAccountById(id: string): Promise<Account | null> {
     throw new Error(`Failed to load account: ${error.message}`);
   }
 
-  return data;
+  return (data as Account | null) ?? null;
 }
 
 export async function getEntryById(id: string): Promise<Entry | null> {
@@ -84,7 +84,7 @@ export async function getEntryById(id: string): Promise<Entry | null> {
     throw new Error(`Failed to load entry: ${error.message}`);
   }
 
-  return data;
+  return (data as Entry | null) ?? null;
 }
 
 export async function getAccountBalance(accountId: string): Promise<number> {

@@ -39,9 +39,15 @@ export default async function DashboardPage() {
       .eq("target_currency", baseCurrency)
       .maybeSingle();
 
-    if (data?.rate) {
-      unifiedTotal += account.current_balance * data.rate;
-      lastUpdated = !lastUpdated || data.fetched_at > lastUpdated ? data.fetched_at : lastUpdated;
+    const rateRow = data as { rate: number; fetched_at: string } | null;
+
+    if (rateRow?.rate) {
+      unifiedTotal += account.current_balance * rateRow.rate;
+      const currentLastUpdated: string = lastUpdated ?? "";
+      lastUpdated =
+        currentLastUpdated === "" || rateRow.fetched_at > currentLastUpdated
+          ? rateRow.fetched_at
+          : currentLastUpdated;
     }
   }
 

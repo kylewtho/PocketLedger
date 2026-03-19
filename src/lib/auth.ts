@@ -20,8 +20,8 @@ function bytesToHex(bytes: Uint8Array): string {
 function base64UrlEncode(bytes: Uint8Array): string {
   let binary = "";
 
-  for (const byte of bytes) {
-    binary += String.fromCharCode(byte);
+  for (let index = 0; index < bytes.length; index += 1) {
+    binary += String.fromCharCode(bytes[index]);
   }
 
   return btoa(binary)

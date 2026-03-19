@@ -11,14 +11,18 @@ function toSafeNextPath(nextPath: FormDataEntryValue | null): string {
 
 export async function POST(request: Request) {
   const formData = await request.formData();
-  const pin = typeof formData.get("pin") === "string" ? formData.get("pin") : "";
+  const rawPin = formData.get("pin");
+  const pin = typeof rawPin === "string" ? rawPin : "";
   const nextPath = toSafeNextPath(formData.get("next"));
 
   if (!(await verifyPin(pin))) {
-    return NextResponse.redirect(new URL(`/login?error=invalid_pin&next=${encodeURIComponent(nextPath)}`, request.url));
+    return NextResponse.redirect(
+      new URL(`/login?error=invalid_pin&next=${encodeURIComponent(nextPath)}`, request.url),
+      303
+    );
   }
 
-  const response = NextResponse.redirect(new URL(nextPath, request.url));
+  const response = NextResponse.redirect(new URL(nextPath, request.url), 303);
   response.cookies.set({
     name: getSessionCookieName(),
     value: await createSessionToken(),

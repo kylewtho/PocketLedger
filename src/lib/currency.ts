@@ -26,25 +26,18 @@ export function formatCurrency(
 // ─── Balance calculation ──────────────────────────────────────────────────────
 
 /**
- * Compute the current balance for an account from initial balance and entry history.
+ * Compute the current balance for an account.
  *
- * balance = initialBalance
+ * balance = startingBalance
  *         + SUM(income entries)
  *         - SUM(expense entries)
- *         + SUM(adjustment entries)
  */
-export function calculateBalance(initialBalance: number, entries: Entry[]): number {
+export function calculateBalance(startingBalance: number, entries: Entry[]): number {
   return entries.reduce((balance, entry) => {
-    if (entry.entry_type === "income") {
-      return balance + entry.amount;
-    }
-
-    if (entry.entry_type === "expense") {
-      return balance - Math.abs(entry.amount);
-    }
-
-    return balance + entry.amount;
-  }, initialBalance);
+    return entry.type === "income"
+      ? balance + entry.amount
+      : balance - entry.amount;
+  }, startingBalance);
 }
 
 /**
@@ -52,7 +45,7 @@ export function calculateBalance(initialBalance: number, entries: Entry[]): numb
  */
 export function totalIncome(entries: Entry[]): number {
   return entries
-    .filter((e) => e.entry_type === "income")
+    .filter((e) => e.type === "income")
     .reduce((sum, e) => sum + e.amount, 0);
 }
 
@@ -61,12 +54,6 @@ export function totalIncome(entries: Entry[]): number {
  */
 export function totalExpenses(entries: Entry[]): number {
   return entries
-    .filter((e) => e.entry_type === "expense")
-    .reduce((sum, e) => sum + e.amount, 0);
-}
-
-export function totalAdjustments(entries: Entry[]): number {
-  return entries
-    .filter((e) => e.entry_type === "adjustment")
+    .filter((e) => e.type === "expense")
     .reduce((sum, e) => sum + e.amount, 0);
 }

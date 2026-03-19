@@ -1,107 +1,122 @@
-import { SESSION_COOKIE_NAME } from "@/lib/constants";
+/**
+ * Simple PIN-based authentication utilities.
+ *
+ * Uses the Web Crypto API (available in Node.js 18+, Edge runtime, and browsers)
+ * so the same code works in both middleware and server components.
+ *
+ * TODO: Replace with full user authentication (e.g. NextAuth.js) when
+ *       multi-user support or social/SSO login is needed.
+ */
 
-const encoder = new TextEncoder();
-const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
+export const SESSION_COOKIE = "pl_session";
 
-function getRequiredEnv(name: "APP_PIN_HASH" | "APP_PIN_SALT" | "SESSION_SECRET"): string {
-  const value = process.env[name];
+/** Session lifetime: 7 days */
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${name}`);
-  }
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-  return value;
+function requireSecret(): string {
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) throw new Error("SESSION_SECRET environment variable is not set");
+  return secret;
 }
 
-function bytesToHex(bytes: Uint8Array): string {
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-
-function base64UrlEncode(bytes: Uint8Array): string {
-  let binary = "";
-
-  for (let index = 0; index < bytes.length; index += 1) {
-    binary += String.fromCharCode(bytes[index]);
-  }
-
-  return btoa(binary)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/g, "");
-}
-
-async function sha256Hex(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", encoder.encode(value));
-  return bytesToHex(new Uint8Array(digest));
-}
-
-async function createHmacSignature(value: string, secret: string): Promise<string> {
-  const key = await crypto.subtle.importKey(
+async function getHmacKey(secret: string, usages: KeyUsage[]): Promise<CryptoKey> {
+  return crypto.subtle.importKey(
     "raw",
-    encoder.encode(secret),
+    new TextEncoder().encode(secret),
     { name: "HMAC", hash: "SHA-256" },
     false,
-    ["sign"]
+    usages
   );
-
-  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(value));
-  return base64UrlEncode(new Uint8Array(signature));
 }
 
-function safeEqual(left: string, right: string): boolean {
-  if (left.length !== right.length) {
-    return false;
+function hexToBytes(hex: string): ArrayBuffer {
+  if (hex.length % 2 !== 0) return new ArrayBuffer(0);
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16);
   }
-
-  let result = 0;
-
-  for (let index = 0; index < left.length; index += 1) {
-    result |= left.charCodeAt(index) ^ right.charCodeAt(index);
-  }
-
-  return result === 0;
+  return bytes.buffer as ArrayBuffer;
 }
 
+function bytesToHex(bytes: ArrayBuffer): string {
+  return Array.from(new Uint8Array(bytes))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+// ─── PIN Hashing ──────────────────────────────────────────────────────────────
+
+/**
+ * Hash a PIN with HMAC-SHA256 using SESSION_SECRET.
+ *
+ * Run this once to generate the PIN_HASH value for your .env.local:
+ *   node -e "require('./src/lib/auth').hashPin('YOUR_PIN').then(h => console.log('PIN_HASH=' + h))"
+ */
+export async function hashPin(pin: string): Promise<string> {
+  const key = await getHmacKey(requireSecret(), ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(pin));
+  return bytesToHex(sig);
+}
+
+/**
+ * Verify a PIN attempt against the stored PIN_HASH env variable.
+ * Uses SubtleCrypto.verify() for constant-time comparison.
+ */
 export async function verifyPin(pin: string): Promise<boolean> {
-  const pinHash = getRequiredEnv("APP_PIN_HASH");
-  const pinSalt = getRequiredEnv("APP_PIN_SALT");
-  const candidateHash = await sha256Hex(`${pinSalt}:${pin}`);
-
-  return safeEqual(candidateHash, pinHash);
+  const stored = process.env.PIN_HASH;
+  if (!stored || !process.env.SESSION_SECRET) return false;
+  try {
+    const key = await getHmacKey(requireSecret(), ["verify"]);
+    const storedBytes = hexToBytes(stored);
+    if (storedBytes.byteLength === 0) return false;
+    return crypto.subtle.verify(
+      "HMAC",
+      key,
+      storedBytes,
+      new TextEncoder().encode(pin)
+    );
+  } catch {
+    return false;
+  }
 }
 
+// ─── Session Tokens ───────────────────────────────────────────────────────────
+
+/** Create a signed session token: `<timestamp>.<hmac>` */
 export async function createSessionToken(): Promise<string> {
-  const sessionSecret = getRequiredEnv("SESSION_SECRET");
-  const expiresAt = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
-  const payload = `v1.${expiresAt}`;
-  const signature = await createHmacSignature(payload, sessionSecret);
-
-  return `${payload}.${signature}`;
+  const payload = Date.now().toString();
+  const key = await getHmacKey(requireSecret(), ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
+  return `${payload}.${bytesToHex(sig)}`;
 }
 
-export async function verifySessionToken(token: string | undefined): Promise<boolean> {
-  if (!token) {
+/** Verify a session token — checks HMAC signature and expiry. */
+export async function verifySessionToken(token: string): Promise<boolean> {
+  if (!process.env.SESSION_SECRET) return false;
+  try {
+    const dotIndex = token.lastIndexOf(".");
+    if (dotIndex === -1) return false;
+
+    const payload = token.substring(0, dotIndex);
+    const sig = token.substring(dotIndex + 1);
+
+    // Check expiry before doing crypto work
+    const created = parseInt(payload, 10);
+    if (isNaN(created) || Date.now() - created > SESSION_TTL_MS) return false;
+
+    const key = await getHmacKey(requireSecret(), ["verify"]);
+    const sigBytes = hexToBytes(sig);
+    if (sigBytes.byteLength === 0) return false;
+
+    return crypto.subtle.verify(
+      "HMAC",
+      key,
+      sigBytes,
+      new TextEncoder().encode(payload)
+    );
+  } catch {
     return false;
   }
-
-  const [version, expiresAtRaw, signature] = token.split(".");
-
-  if (version !== "v1" || !expiresAtRaw || !signature) {
-    return false;
-  }
-
-  const expiresAt = Number(expiresAtRaw);
-
-  if (!Number.isFinite(expiresAt) || expiresAt <= Math.floor(Date.now() / 1000)) {
-    return false;
-  }
-
-  const sessionSecret = getRequiredEnv("SESSION_SECRET");
-  const expectedSignature = await createHmacSignature(`v1.${expiresAt}`, sessionSecret);
-
-  return safeEqual(signature, expectedSignature);
-}
-
-export function getSessionCookieName(): string {
-  return SESSION_COOKIE_NAME;
 }

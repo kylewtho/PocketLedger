@@ -1,16 +1,14 @@
 -- Migration: Create workspaces table
--- PocketLedger currently uses a single shared workspace, but this table
--- preserves a clean upgrade path for membership-based access later.
+-- Workspaces represent a named set of accounts and entries, supporting
+-- future multi-workspace (e.g. personal vs. business) use cases.
 
 create table if not exists workspaces (
-  id            uuid primary key default gen_random_uuid(),
-  name          text not null,
-  base_currency varchar(3) not null default 'USD',
-  created_at    timestamptz not null default now(),
-  updated_at    timestamptz not null default now(),
-
-  constraint workspaces_base_currency_uppercase_chk
-    check (base_currency = upper(base_currency))
+  id          uuid primary key default gen_random_uuid(),
+  name        text not null,
+  description text,
+  currency    text not null default 'USD',
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
 );
 
 -- Keep updated_at current automatically

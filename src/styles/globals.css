@@ -9,7 +9,6 @@
     --border: 214.3 31.8% 91.4%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --radius: 0.75rem;
   }
   .dark {
     --background: 222.2 84% 4.9%;
@@ -22,6 +21,6 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground;
   }
 }

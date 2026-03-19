@@ -1,171 +1,60 @@
-# PocketLedger Product Spec
+# PocketLedger — Product Specification
 
 ## Overview
 
-PocketLedger is a minimalist web app for tracking account balances and financial entries across multiple currencies.
+PocketLedger is a personal finance tracker designed for individuals who want a simple, private way to track their accounts and financial entries without complex cloud sync.
 
-The product is designed for personal use first, with a data model and access model that can expand later to multiple users or shared workspaces without a rewrite.
+## Goals
 
-## Product Goals
+- Simple, fast UI for daily finance tracking
+- Support multiple accounts (checking, savings, cash, credit)
+- Record income and expense entries with categories
+- Dashboard with balance summaries
+- Offline-first capability (future)
+- PIN-based auth for privacy on shared devices
 
-- Track current balances of multiple accounts
-- Record money in, money out, and manual adjustments
-- Support negative balances
-- Support multiple currencies
-- Display balances grouped by original currencies or unified into a selected base currency
-- Provide a clean, responsive dashboard with mobile-friendly forms
-- Keep access simple with a single shared numeric PIN for the MVP
+## Non-Goals (v1)
 
-## MVP Scope
+- Multi-user / team features
+- Complex budgeting tools
+- Bank sync / Open Banking
+- Investment tracking
 
-### Included
-
-- PIN-protected access
-- Dashboard focused on total balance
-- Account management
-- Entry management
-- Multi-currency display
-- Dark mode / light mode toggle
-- CSV export stubs
-- Supabase database schema
-- Exchange-rate fetch route and cache table scaffold
-
-### Not Included Yet
-
-- Transfers between accounts
-- Categories
-- Tags
-- Attachments
-- Receipt uploads
-- Recurring transactions
-- Full user accounts
-- Fine-grained permissions
-- Audit trails
-
-## Core Concepts
-
-### Workspace
-
-The app currently assumes a single shared workspace.
-All accounts and entries belong to that workspace.
-
-This keeps the MVP simple while preserving a clear upgrade path to membership-based access later.
+## User Stories
 
 ### Accounts
-
-Each account has:
-
-- name
-- currency code
-- initial balance
-- allow negative flag for future account-level restriction support
-- short note up to 50 characters
-- archived status
-
-Examples:
-
-- HSBC AUD
-- HSBC HKD
-- Cash
-- Credit Card
+- As a user, I can create an account with a name, type, and starting balance
+- As a user, I can view all my accounts and their current balances
+- As a user, I can edit or archive an account
+- As a user, I can view all entries for a specific account
 
 ### Entries
+- As a user, I can record an income or expense entry
+- As a user, I can assign an entry to an account
+- As a user, I can categorize an entry (food, transport, salary, etc.)
+- As a user, I can view all entries, sorted by date
 
-Each entry belongs to one account and has:
+### Dashboard
+- As a user, I can see my total balance across all accounts
+- As a user, I can see my net income/expense for the current month
 
-- type: income, expense, or adjustment
-- amount
-- comment up to 50 characters
-- datetime
+### Settings
+- As a user, I can toggle between dark and light mode
+- As a user, I can set a PIN to protect access (future)
+- As a user, I can export my data as CSV (future)
 
-### Balance Calculation
+## Account Types
 
-Current account balance is:
+- Checking
+- Savings
+- Cash
+- Credit Card
+- Investment (future)
 
-`initial_balance + sum(entry effects)`
+## Entry Categories
 
-Where:
-
-- income adds to balance
-- expense subtracts from balance
-- adjustment may be positive or negative
-
-The app should not rely on a stored running balance as the source of truth.
-
-## Negative Balance Rule
-
-Any account may go negative.
-
-If a new entry causes the resulting balance to become negative, a comment is required.
-
-For the MVP, negative balances are allowed regardless of the account-level flag.
-If `allow_negative` remains in the schema, it should be treated as forward-compatible scaffolding rather than active MVP behavior.
-
-## Currency Display Modes
-
-### Mode 1: Grouped by Currency
-
-Balances are displayed in their original currencies, for example:
-
-- AUD total
-- HKD total
-- USD total
-
-### Mode 2: Unified Base Currency
-
-All balances are converted into one selected base currency using the latest available exchange rate.
-
-The UI should show:
-
-- selected base currency
-- converted total
-- exchange-rate last updated timestamp
-
-## Access Model
-
-Current access is intentionally simple:
-
-- one shared numeric PIN
-- PIN verified server-side
-- cookie-based session
-- route protection via middleware
-
-The upgrade path should be documented for:
-
-- email login
-- magic link
-- role-based access
-- workspace membership
-
-## UX Priorities
-
-1. Total balance is the most prominent element
-2. The dashboard should be clean and fast to understand
-3. Forms should be simple and mobile-friendly
-4. Theme toggle should be easy to access
-5. Empty states should not feel broken or unfinished
-
-## Design Direction
-
-- Minimalist finance dashboard
-- Clean typography
-- Card-based sections
-- Rounded corners
-- Good spacing
-- Dark mode and light mode
-- Low visual noise
-
-## Future Extensions
-
-- Transfers
-- Categories
-- Tags
-- Receipt upload
-- Historical FX conversion
-- Search and filters
-- Better reporting
-- Per-user identity
-- Workspace members
+- Income: Salary, Freelance, Other Income
+- Expense: Food, Transport, Housing, Healthcare, Entertainment, Shopping, Other
 
 ## Tech Stack
 

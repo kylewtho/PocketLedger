@@ -1,17 +1,15 @@
 -- Migration: Create workspaces table
--- Workspaces represent a named set of accounts and entries, supporting
--- future multi-workspace (e.g. personal vs. business) use cases.
+-- MVP assumes a single shared workspace, but the table leaves room
+-- for future workspace membership and stronger auth models.
 
 create table if not exists workspaces (
-  id          uuid primary key default gen_random_uuid(),
-  name        text not null,
-  description text,
-  currency    text not null default 'USD',
-  created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now()
+  id            uuid primary key default gen_random_uuid(),
+  name          text not null,
+  base_currency text not null default 'USD',
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
 );
 
--- Keep updated_at current automatically
 create or replace function set_updated_at()
 returns trigger language plpgsql as $$
 begin

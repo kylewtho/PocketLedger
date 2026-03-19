@@ -67,6 +67,12 @@ A personal finance tracker built with Next.js 15, TypeScript, and Tailwind CSS.
    ```
    Replace `YOUR_PIN` with the PIN you want to use (e.g. a 4–8 digit number).
 
+   For a deterministic local test PIN of `1234`, use:
+   ```bash
+   node -e "require('./src/lib/auth').hashPin('1234').then(h => console.log('PIN_HASH=' + h))" >> .env.local
+   ```
+   If `1234` currently says "Incorrect PIN", your existing `PIN_HASH` was generated from a different PIN or a different `SESSION_SECRET`.
+
 5. Apply the database migrations in the Supabase SQL editor (or via the Supabase CLI):
    ```bash
    # With the Supabase CLI (recommended)
@@ -93,6 +99,8 @@ A personal finance tracker built with Next.js 15, TypeScript, and Tailwind CSS.
    ```
 
 7. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+If you access the dev server from another device on your LAN, update `allowedDevOrigins` in [next.config.mjs](/Users/kyle/Documents/GitHub/PocketLedger/next.config.mjs) to include that host and restart `npm run dev`.
 
 ## Project Structure
 

@@ -5,19 +5,16 @@ import { redirect } from "next/navigation";
 import { verifyPin, createSessionToken, SESSION_COOKIE } from "@/lib/auth";
 
 /** Verify the submitted PIN and set a session cookie on success. */
-export async function loginWithPin(
-  _prevState: { error: string } | null,
-  formData: FormData
-): Promise<{ error: string }> {
+export async function loginWithPin(formData: FormData) {
   const pin = formData.get("pin");
 
   if (typeof pin !== "string" || !pin.trim()) {
-    return { error: "PIN is required." };
+    redirect("/?error=pin-required");
   }
 
   const valid = await verifyPin(pin.trim());
   if (!valid) {
-    return { error: "Incorrect PIN. Please try again." };
+    redirect("/?error=invalid-pin");
   }
 
   const cookieStore = await cookies();

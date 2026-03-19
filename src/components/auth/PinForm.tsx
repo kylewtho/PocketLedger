@@ -1,56 +1,18 @@
-"use client";
-
-import { useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 
 interface PinFormProps {
-  action: (
-    prevState: { error: string } | null,
-    formData: FormData
-  ) => Promise<{ error: string }>;
+  action: (formData: FormData) => Promise<void>;
+  error?: string;
 }
 
-/**
- * Client-side PIN form with inline error display and loading state.
- * Uses a manual fetch approach to call the server action without depending
- * on React 19 APIs (useActionState) since this project targets React 18.
- */
-export function PinForm({ action }: PinFormProps) {
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError(null);
-    setPending(true);
-
-    try {
-      const formData = new FormData(e.currentTarget);
-      const result = await action(null, formData);
-      // If we reach here the action returned (not redirected) — show error
-      if (result?.error) {
-        setError(result.error);
-        if (inputRef.current) {
-          inputRef.current.value = "";
-          inputRef.current.focus();
-        }
-      }
-    } catch {
-      // next/navigation redirect() throws — this is expected on success
-    } finally {
-      setPending(false);
-    }
-  }
-
+export function PinForm({ action, error }: PinFormProps) {
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form action={action} className="space-y-4">
       <div>
         <label htmlFor="pin" className="sr-only">
           PIN
         </label>
         <input
-          ref={inputRef}
           id="pin"
           name="pin"
           type="password"
@@ -68,13 +30,8 @@ export function PinForm({ action }: PinFormProps) {
         </p>
       )}
 
-      <Button
-        type="submit"
-        size="lg"
-        disabled={pending}
-        className="w-full"
-      >
-        {pending ? "Verifying…" : "Unlock"}
+      <Button type="submit" size="lg" className="w-full">
+        Unlock
       </Button>
     </form>
   );

@@ -2,7 +2,19 @@ import { PiggyBank } from "lucide-react";
 import { loginWithPin } from "@/app/actions/auth";
 import { PinForm } from "@/components/auth/PinForm";
 
-export default function LoginPage() {
+const LOGIN_ERRORS: Record<string, string> = {
+  "pin-required": "PIN is required.",
+  "invalid-pin": "Incorrect PIN. Please try again.",
+};
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ error?: string }>;
+}) {
+  const params = (await searchParams) ?? {};
+  const error = params.error ? LOGIN_ERRORS[params.error] : undefined;
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="w-full max-w-sm px-6">
@@ -15,7 +27,7 @@ export default function LoginPage() {
             Enter your PIN to access your finances.
           </p>
         </div>
-        <PinForm action={loginWithPin} />
+        <PinForm action={loginWithPin} error={error} />
       </div>
     </div>
   );

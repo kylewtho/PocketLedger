@@ -1,70 +1,103 @@
--- Seed: default workspace and sample data
--- Run this after all migrations to populate the database with a starter
--- workspace, two accounts, and a handful of sample entries.
+-- Seed: default workspace and sample multi-currency data
 
--- Default workspace
-insert into workspaces (id, name, description, currency)
+insert into workspaces (id, name, base_currency)
 values (
   '00000000-0000-0000-0000-000000000001',
-  'Personal',
-  'Default personal finance workspace',
+  'Shared Workspace',
   'USD'
 )
 on conflict (id) do nothing;
 
--- Sample accounts
-insert into accounts (id, workspace_id, name, type, starting_balance, currency)
+insert into accounts (
+  id,
+  workspace_id,
+  name,
+  currency_code,
+  initial_balance,
+  allow_negative,
+  note,
+  archived
+)
 values
   (
     '00000000-0000-0000-0000-000000000010',
     '00000000-0000-0000-0000-000000000001',
-    'Checking',
-    'checking',
-    1000.00,
-    'USD'
+    'Cash Wallet',
+    'USD',
+    120.00,
+    true,
+    'Daily cash',
+    false
   ),
   (
     '00000000-0000-0000-0000-000000000011',
     '00000000-0000-0000-0000-000000000001',
-    'Savings',
-    'savings',
-    5000.00,
-    'USD'
+    'HSBC AUD',
+    'AUD',
+    850.00,
+    true,
+    'Travel funds',
+    false
   )
 on conflict (id) do nothing;
 
--- Sample entries for the Checking account
-insert into entries (account_id, type, amount, category, description, date)
+insert into entries (
+  id,
+  workspace_id,
+  account_id,
+  entry_type,
+  amount,
+  comment,
+  entry_at
+)
 values
   (
+    '00000000-0000-0000-0000-000000000100',
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000010',
+    'expense',
+    24.50,
+    'Groceries',
+    now() - interval '4 days'
+  ),
+  (
+    '00000000-0000-0000-0000-000000000101',
+    '00000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000010',
     'income',
-    3000.00,
-    'Salary',
-    'Monthly salary',
-    current_date - interval '15 days'
+    100.00,
+    'Cash top-up',
+    now() - interval '2 days'
   ),
   (
-    '00000000-0000-0000-0000-000000000010',
-    'expense',
-    120.00,
-    'Food',
-    'Groceries',
-    current_date - interval '10 days'
-  ),
-  (
-    '00000000-0000-0000-0000-000000000010',
-    'expense',
-    45.00,
-    'Transport',
-    'Monthly transit pass',
-    current_date - interval '5 days'
-  ),
-  (
-    '00000000-0000-0000-0000-000000000010',
-    'expense',
-    800.00,
-    'Housing',
-    'Rent payment',
-    current_date - interval '1 day'
+    '00000000-0000-0000-0000-000000000102',
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000011',
+    'adjustment',
+    -15.00,
+    'Bank fee correction',
+    now() - interval '1 day'
   );
+
+insert into exchange_rate_cache (
+  id,
+  base_currency,
+  target_currency,
+  rate,
+  fetched_at,
+  source
+)
+values
+  (
+    '00000000-0000-0000-0000-000000000200',
+    'USD',
+    'AUD',
+    1.52000000,
+    now() - interval '6 hours',
+    'seed'
+  )
+on conflict (base_currency, target_currency) do update
+set
+  rate = excluded.rate,
+  fetched_at = excluded.fetched_at,
+  source = excluded.source;

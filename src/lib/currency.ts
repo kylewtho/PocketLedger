@@ -1,15 +1,5 @@
 import type { Entry } from "@/types/database";
 
-// ─── Currency formatting ──────────────────────────────────────────────────────
-
-/**
- * Format a numeric amount as a currency string.
- *
- * @example
- * formatCurrency(1234.5)           // "$1,234.50"
- * formatCurrency(1234.5, "EUR")    // "€1,234.50"
- * formatCurrency(1234.5, "GBP", "de-DE") // "1.234,50 £"
- */
 export function formatCurrency(
   amount: number,
   currency = "USD",
@@ -23,37 +13,36 @@ export function formatCurrency(
   }).format(amount);
 }
 
-// ─── Balance calculation ──────────────────────────────────────────────────────
+function entryEffect(entry: Entry): number {
+  if (entry.entry_type === "income") {
+    return entry.amount;
+  }
 
-/**
- * Compute the current balance for an account.
- *
- * balance = startingBalance
- *         + SUM(income entries)
- *         - SUM(expense entries)
- */
-export function calculateBalance(startingBalance: number, entries: Entry[]): number {
-  return entries.reduce((balance, entry) => {
-    return entry.type === "income"
-      ? balance + entry.amount
-      : balance - entry.amount;
-  }, startingBalance);
+  if (entry.entry_type === "expense") {
+    return -Math.abs(entry.amount);
+  }
+
+  return entry.amount;
 }
 
-/**
- * Sum all income entries in a list.
- */
+export function calculateBalance(initialBalance: number, entries: Entry[]): number {
+  return entries.reduce((balance, entry) => balance + entryEffect(entry), initialBalance);
+}
+
 export function totalIncome(entries: Entry[]): number {
   return entries
-    .filter((e) => e.type === "income")
-    .reduce((sum, e) => sum + e.amount, 0);
+    .filter((entry) => entry.entry_type === "income")
+    .reduce((sum, entry) => sum + entry.amount, 0);
 }
 
-/**
- * Sum all expense entries in a list.
- */
 export function totalExpenses(entries: Entry[]): number {
   return entries
-    .filter((e) => e.type === "expense")
-    .reduce((sum, e) => sum + e.amount, 0);
+    .filter((entry) => entry.entry_type === "expense")
+    .reduce((sum, entry) => sum + Math.abs(entry.amount), 0);
+}
+
+export function totalAdjustments(entries: Entry[]): number {
+  return entries
+    .filter((entry) => entry.entry_type === "adjustment")
+    .reduce((sum, entry) => sum + entry.amount, 0);
 }

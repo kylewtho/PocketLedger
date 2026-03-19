@@ -1,80 +1,104 @@
 # PocketLedger — Database Schema
 
-> **Status**: Migrations implemented in `supabase/migrations/`. Apply them in order before running the app.
+> **Status**: The target schema below now matches the checked-in migrations in `supabase/migrations/`.
+
+## Principles
+
+- Keep the schema simple for a single shared workspace MVP
+- Use entries, not stored running balances, as the source of truth
+- Allow future expansion to workspace membership and stronger auth
+- Keep exchange-rate caching server-side and database-backed
 
 ## Tables
 
 ### workspaces
 
-| Column      | Type        | Notes                              |
-|-------------|-------------|------------------------------------|
-| id          | uuid (PK)   | Default: gen_random_uuid()         |
-| name        | text        | Required                           |
-| description | text        | Optional                           |
-| currency    | text        | Default: 'USD'                     |
-| created_at  | timestamptz | Default: now()                     |
-| updated_at  | timestamptz | Default: now()                     |
+| Column        | Type        | Notes                      |
+|---------------|-------------|----------------------------|
+| id            | uuid (PK)   | Default: `gen_random_uuid()` |
+| name          | text        | Required                   |
+| base_currency | text        | 3-letter ISO code          |
+| created_at    | timestamptz | Default: `now()`           |
+| updated_at    | timestamptz | Default: `now()`           |
 
 ### accounts
 
-| Column           | Type        | Notes                              |
-|------------------|-------------|------------------------------------|
-| id               | uuid (PK)   | Default: gen_random_uuid()         |
-| workspace_id     | uuid (FK)   | References workspaces.id           |
-| name             | text        | Required                           |
-| type             | text        | checking, savings, cash, credit    |
-| starting_balance | numeric     | Default: 0                         |
-| currency         | text        | Default: 'USD'                     |
-| is_archived      | boolean     | Default: false                     |
-| created_at       | timestamptz | Default: now()                     |
-| updated_at       | timestamptz | Default: now()                     |
+| Column          | Type          | Notes                               |
+|-----------------|---------------|-------------------------------------|
+| id              | uuid (PK)     | Default: `gen_random_uuid()`        |
+| workspace_id    | uuid (FK)     | References `workspaces.id`          |
+| name            | text          | Required                            |
+| currency_code   | text          | 3-letter ISO code, uppercase        |
+| initial_balance | numeric(18,2) | Starting value before entries       |
+| allow_negative  | boolean       | Default: `true`                     |
+| note            | varchar(50)   | Optional short note                 |
+| archived        | boolean       | Default: `false`                    |
+| created_at      | timestamptz   | Default: `now()`                    |
+| updated_at      | timestamptz   | Default: `now()`                    |
 
 ### entries
 
-| Column      | Type        | Notes                              |
-|-------------|-------------|------------------------------------|
-| id          | uuid (PK)   | Default: gen_random_uuid()         |
-| account_id  | uuid (FK)   | References accounts.id             |
-| type        | text        | income or expense                  |
-| amount      | numeric     | Required, positive                 |
-| category    | text        | See category list                  |
-| description | text        | Optional                           |
-| date        | date        | Required                           |
-| created_at  | timestamptz | Default: now()                     |
-| updated_at  | timestamptz | Default: now()                     |
+| Column       | Type          | Notes                                            |
+|--------------|---------------|--------------------------------------------------|
+| id           | uuid (PK)     | Default: `gen_random_uuid()`                     |
+| workspace_id | uuid (FK)     | References `workspaces.id`                       |
+| account_id   | uuid (FK)     | References `accounts.id`                         |
+| entry_type   | text          | `income`, `expense`, or `adjustment`             |
+| amount       | numeric(18,2) | Positive for income, negative or positive adjustment |
+| comment      | varchar(50)   | Optional, but required by app logic in some cases |
+| entry_at     | timestamptz   | Entry timestamp                                  |
+| created_at   | timestamptz   | Default: `now()`                                 |
+| updated_at   | timestamptz   | Default: `now()`                                 |
 
 ### exchange_rate_cache
 
-| Column         | Type        | Notes                              |
-|----------------|-------------|------------------------------------|
-| id             | uuid (PK)   | Default: gen_random_uuid()         |
-| base_currency  | text        | 3-letter ISO code                  |
-| quote_currency | text        | 3-letter ISO code                  |
-| rate           | numeric     | Exchange rate, must be > 0         |
-| fetched_at     | timestamptz | Default: now()                     |
+| Column          | Type          | Notes                               |
+|-----------------|---------------|-------------------------------------|
+| id              | uuid (PK)     | Default: `gen_random_uuid()`        |
+| base_currency   | text          | 3-letter ISO code                   |
+| target_currency | text          | 3-letter ISO code                   |
+| rate            | numeric(18,8) | Must be greater than 0              |
+| fetched_at      | timestamptz   | Default: `now()`                    |
+| source          | text          | Optional provider/source label      |
 
-Unique constraint on `(base_currency, quote_currency)`.
+Unique constraint on `(base_currency, target_currency)`.
 
-## Computed Values
+## Balance Calculation
 
-Account balance is computed as:
+Account balance is derived as:
+
+```text
+balance = initial_balance + sum(entry effects)
 ```
-balance = starting_balance
-        + SUM(entries WHERE type='income' AND account_id=account.id)
-        - SUM(entries WHERE type='expense' AND account_id=account.id)
-```
 
-See `src/lib/currency.ts` for the `calculateBalance()` helper.
+Where:
+- `income` adds `amount`
+- `expense` subtracts `amount`
+- `adjustment` applies `amount` as-is
 
-## Indexes
+See [src/lib/currency.ts](/Users/kyle/Documents/GitHub/PocketLedger/src/lib/currency.ts) for the current helper implementation.
 
-- `accounts.workspace_id` — for filtering accounts by workspace
-- `accounts.is_archived` — for filtering archived accounts
-- `entries.account_id` — for filtering entries by account
-- `entries.date` — for sorting entries by date
-- `entries.type` — for filtering by income/expense
-- `exchange_rate_cache.(base_currency, quote_currency)` — for fast lookups
+## Recommended Indexes
 
-## Row Level Security (TODO)
+- `accounts.workspace_id`
+- `accounts.archived`
+- `accounts.currency_code`
+- `entries.workspace_id`
+- `entries.account_id`
+- `entries.entry_type`
+- `entries.entry_at`
+- `exchange_rate_cache.(base_currency, target_currency)`
 
-When multi-user support is added, RLS policies will restrict data access per user.
+## Seed Data
+
+The starter seed currently includes:
+- one default workspace
+- two sample accounts in different currencies
+- sample entries covering `income`, `expense`, and `adjustment`
+- one cached exchange-rate record
+
+## Notes
+
+- `allow_negative` is retained in the schema for forward compatibility, even though the current product rules broadly allow negative balances.
+- The negative-balance comment requirement is enforced in application logic, not by a database constraint.
+- Row-level security is intentionally deferred until the app moves beyond the shared-workspace MVP.

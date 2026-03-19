@@ -1,138 +1,117 @@
 # PocketLedger
 
-A personal finance tracker built with Next.js 15, TypeScript, and Tailwind CSS.
+PocketLedger is a minimalist web app for tracking account balances and simple financial entries across multiple currencies.
 
-## Features
+## Planned Stack
 
-- 📊 Dashboard with financial overview
-- 🏦 Account management
-- 📝 Transaction entries
-- 🌙 Dark/light mode
-- 📱 Responsive layout
+- Next.js
+- TypeScript
+- Tailwind CSS
+- shadcn UI
+- Supabase
+- Vercel
 
-## Tech Stack
+## MVP Features
 
-- **Framework**: Next.js 15 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Theming**: next-themes
-- **Icons**: lucide-react
-- **Utilities**: clsx, tailwind-merge
-- **Database**: Supabase (PostgreSQL)
-- **Validation**: Zod
+- Shared PIN-protected access
+- Dashboard with total balance
+- Multiple accounts
+- Multiple currencies
+- Income / expense / adjustment entries
+- Negative balance support
+- Dark / light mode
+- Exchange-rate conversion display
+- CSV export stubs
 
-## Getting Started
+## Current Repository State
+
+- Starter Next.js App Router scaffold exists
+- Shared UI components and route placeholders exist under `src/`
+- Responsive app shell includes a mobile navigation drawer
+- Product and architecture docs are aligned to the current MVP
+- SQL migrations and seed data follow the current starter schema direction
+- PIN login, middleware protection, exchange-rate route stubs, and CSV export stubs are in place
+
+## Notes
+
+- Treat `PRODUCT_SPEC.md`, `ARCHITECTURE.md`, and `DATABASE.md` as the current source of truth
+- React Hook Form and TanStack Query are still planned additions, not installed dependencies yet
+- Some flows are still starter-level implementations and include explicit TODO markers for future completion
+
+## Setup
 
 ### Prerequisites
 
 - Node.js 18+
-- npm or yarn or pnpm
-- A [Supabase](https://supabase.com) project (free tier is sufficient)
+- npm
+- A Supabase project for later database wiring
 
-### Installation
+### Local Development
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/kylewtho/PocketLedger.git
-   cd PocketLedger
-   ```
-
-2. Install dependencies:
+1. Install dependencies:
    ```bash
    npm install
    ```
 
-3. Copy the environment file and fill in your Supabase credentials:
+2. Copy environment variables:
    ```bash
    cp .env.example .env.local
    ```
-   Open `.env.local` and set:
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=https://<your-project>.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
-   ```
-   Both values are available in your Supabase project under **Settings → API**.
 
-4. Apply the database migrations in the Supabase SQL editor (or via the Supabase CLI):
-   ```bash
-   # With the Supabase CLI (recommended)
-   supabase db push
+3. Fill in local values in `.env.local`:
+   - `NEXT_PUBLIC_APP_URL`
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `APP_PIN_HASH`
+   - `APP_PIN_SALT`
+   - `SESSION_SECRET`
 
-   # Or paste each file manually in the SQL editor:
-   #   supabase/migrations/001_create_workspaces.sql
-   #   supabase/migrations/002_create_accounts.sql
-   #   supabase/migrations/003_create_entries.sql
-   #   supabase/migrations/004_create_exchange_rate_cache.sql
-   ```
-
-5. (Optional) Load sample data:
-   ```bash
-   # With the Supabase CLI
-   supabase db seed
-
-   # Or paste supabase/seed.sql in the SQL editor
-   ```
-
-6. Start the development server:
+4. Start the app:
    ```bash
    npm run dev
    ```
 
-7. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Open `http://localhost:3000`
 
-## Project Structure
+### Database Note
 
-```
-supabase/
-├── migrations/             # SQL migration files (run in order)
-└── seed.sql                # Sample data for development
-src/
-├── app/                    # Next.js App Router pages
-│   ├── layout.tsx          # Root layout with navigation
-│   ├── page.tsx            # Home/landing page
-│   ├── dashboard/
-│   ├── accounts/
-│   │   ├── page.tsx
-│   │   ├── new/page.tsx
-│   │   └── [id]/page.tsx
-│   ├── entries/
-│   │   ├── page.tsx
-│   │   └── new/page.tsx
-│   └── settings/
-├── components/
-│   ├── navigation/         # Navigation components
-│   └── ui/                 # Reusable UI components
-├── lib/                    # Utilities and constants
-│   ├── constants.ts        # App-wide constants
-│   ├── currency.ts         # Currency formatting + balance helpers
-│   ├── supabase.ts         # Supabase client
-│   ├── utils.ts            # cn() Tailwind helper
-│   └── validations.ts      # Zod schemas for forms
-├── types/
-│   └── database.ts         # TypeScript types for the database schema
-└── styles/                 # Global styles
-```
+The repository includes starter Supabase SQL under `supabase/migrations/` and starter seed data in `supabase/seed.sql`.
 
-## Documentation
+### Supabase Setup
 
-- [Product Spec](./PRODUCT_SPEC.md)
-- [Architecture](./ARCHITECTURE.md)
-- [Database Schema](./DATABASE.md)
-- [Copilot Notes](./COPILOT_NOTES.md)
-- [TODO](./TODO.md)
+1. Create a new Supabase project
+2. Copy `.env.example` to `.env.local`
+3. Add your project URL and anon key:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. Apply migrations in order from `supabase/migrations/`
+5. Load `supabase/seed.sql` if you want starter workspace/account/entry data
 
-## Development
+### Auth Setup
 
-```bash
-# Development server
-npm run dev
+Shared PIN access expects three server-side values:
 
-# Type checking
-npx tsc --noEmit
+- `APP_PIN_HASH`: SHA-256 hash of `APP_PIN_SALT:your-pin`
+- `APP_PIN_SALT`: secret salt used when hashing the PIN
+- `SESSION_SECRET`: secret used to sign the cookie session
 
-# Linting
-npm run lint
+Until those values are set, PIN login and protected routes will not work correctly.
 
-# Production build
-npm run build
-```
+Current schema direction:
+
+- `workspaces`
+- `accounts`
+- `entries`
+- `exchange_rate_cache`
+
+## Reference Docs
+
+- `PRODUCT_SPEC.md`
+- `ARCHITECTURE.md`
+- `DATABASE.md`
+- `COPILOT_NOTES.md`
+- `TODO.md`
+
+## Status
+
+Starter repository scaffold in progress.

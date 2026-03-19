@@ -1,5 +1,8 @@
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { ThemeToggle } from "@/components/settings/ThemeToggle";
+import { BaseCurrencySelect } from "@/components/settings/BaseCurrencySelect";
+import { Button } from "@/components/ui/Button";
 
 export default function SettingsPage() {
   return (
@@ -14,8 +17,15 @@ export default function SettingsPage() {
             <CardTitle>Appearance</CardTitle>
           </CardHeader>
           <CardContent>
-            {/* TODO: Implement theme switcher */}
-            <p className="text-muted-foreground">Theme settings coming soon.</p>
+            <ThemeToggle />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Display</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <BaseCurrencySelect />
           </CardContent>
         </Card>
         <Card>
@@ -23,8 +33,16 @@ export default function SettingsPage() {
             <CardTitle>Security</CardTitle>
           </CardHeader>
           <CardContent>
-            {/* TODO: Implement PIN auth */}
-            <p className="text-muted-foreground">PIN authentication coming soon.</p>
+            <div className="space-y-3">
+              <p className="text-muted-foreground text-sm">
+                Shared PIN access is active through a server-side login flow and cookie session.
+              </p>
+              <form action="/api/auth/logout" method="post">
+                <Button type="submit" variant="secondary">
+                  Log out
+                </Button>
+              </form>
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -32,8 +50,11 @@ export default function SettingsPage() {
             <CardTitle>Data</CardTitle>
           </CardHeader>
           <CardContent>
-            {/* TODO: Implement export/import */}
-            <p className="text-muted-foreground">Data management coming soon.</p>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <p>CSV export stubs are available for accounts and entries.</p>
+              <p>`/api/export/accounts`</p>
+              <p>`/api/export/entries`</p>
+            </div>
           </CardContent>
         </Card>
       </div>

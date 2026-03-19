@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PiggyBank, ArrowRight } from "lucide-react";
+import { PiggyBank, ArrowRight, LockKeyhole } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -9,14 +9,22 @@ export default function HomePage() {
       </div>
       <h1 className="text-4xl font-bold mb-4">Welcome to PocketLedger</h1>
       <p className="text-muted-foreground text-lg mb-8 max-w-md">
-        Your personal finance tracker. Keep tabs on your accounts and expenses in one place.
+        Track balances across multiple currencies with a clean starter dashboard and shared PIN access.
       </p>
-      <Link
-        href="/dashboard"
-        className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md font-medium hover:bg-blue-700 transition-colors"
-      >
-        Go to Dashboard <ArrowRight className="h-4 w-4" />
-      </Link>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
+        >
+          Go to Dashboard <ArrowRight className="h-4 w-4" />
+        </Link>
+        <Link
+          href="/login"
+          className="inline-flex items-center gap-2 rounded-md border border-border px-6 py-3 font-medium transition-colors hover:bg-muted"
+        >
+          Login <LockKeyhole className="h-4 w-4" />
+        </Link>
+      </div>
     </div>
   );
 }

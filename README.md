@@ -18,6 +18,8 @@ A personal finance tracker built with Next.js 15, TypeScript, and Tailwind CSS.
 - **Theming**: next-themes
 - **Icons**: lucide-react
 - **Utilities**: clsx, tailwind-merge
+- **Database**: Supabase (PostgreSQL)
+- **Validation**: Zod
 
 ## Getting Started
 
@@ -25,6 +27,7 @@ A personal finance tracker built with Next.js 15, TypeScript, and Tailwind CSS.
 
 - Node.js 18+
 - npm or yarn or pnpm
+- A [Supabase](https://supabase.com) project (free tier is sufficient)
 
 ### Installation
 
@@ -39,21 +42,50 @@ A personal finance tracker built with Next.js 15, TypeScript, and Tailwind CSS.
    npm install
    ```
 
-3. Copy the environment file:
+3. Copy the environment file and fill in your Supabase credentials:
    ```bash
    cp .env.example .env.local
    ```
+   Open `.env.local` and set:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=https://<your-project>.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
+   ```
+   Both values are available in your Supabase project under **Settings → API**.
 
-4. Start the development server:
+4. Apply the database migrations in the Supabase SQL editor (or via the Supabase CLI):
+   ```bash
+   # With the Supabase CLI (recommended)
+   supabase db push
+
+   # Or paste each file manually in the SQL editor:
+   #   supabase/migrations/001_create_workspaces.sql
+   #   supabase/migrations/002_create_accounts.sql
+   #   supabase/migrations/003_create_entries.sql
+   #   supabase/migrations/004_create_exchange_rate_cache.sql
+   ```
+
+5. (Optional) Load sample data:
+   ```bash
+   # With the Supabase CLI
+   supabase db seed
+
+   # Or paste supabase/seed.sql in the SQL editor
+   ```
+
+6. Start the development server:
    ```bash
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+7. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Project Structure
 
 ```
+supabase/
+├── migrations/             # SQL migration files (run in order)
+└── seed.sql                # Sample data for development
 src/
 ├── app/                    # Next.js App Router pages
 │   ├── layout.tsx          # Root layout with navigation
@@ -71,6 +103,13 @@ src/
 │   ├── navigation/         # Navigation components
 │   └── ui/                 # Reusable UI components
 ├── lib/                    # Utilities and constants
+│   ├── constants.ts        # App-wide constants
+│   ├── currency.ts         # Currency formatting + balance helpers
+│   ├── supabase.ts         # Supabase client
+│   ├── utils.ts            # cn() Tailwind helper
+│   └── validations.ts      # Zod schemas for forms
+├── types/
+│   └── database.ts         # TypeScript types for the database schema
 └── styles/                 # Global styles
 ```
 

@@ -30,9 +30,12 @@ src/
 ├── lib/
 │   ├── utils.ts            # cn() helper
 │   ├── constants.ts        # App-wide constants
-│   └── supabase.ts         # Supabase client (TODO)
+│   ├── supabase.ts         # Supabase client
+│   ├── currency.ts         # Currency formatting + balance helpers
+│   └── validations.ts      # Zod schemas for accounts and entries
 ├── hooks/                  # Custom React hooks (TODO)
-├── types/                  # TypeScript types (TODO)
+├── types/
+│   └── database.ts         # TypeScript types for the database schema
 └── styles/
     └── globals.css         # Global Tailwind styles
 ```
@@ -63,6 +66,5 @@ Utility-first CSS for fast, consistent styling with minimal custom CSS.
 ## Future Considerations
 
 - Add React Query or SWR for data fetching
-- Add Zod for form validation
 - Add react-hook-form for form management
 - Consider PWA for offline support

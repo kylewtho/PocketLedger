@@ -10,10 +10,10 @@ Ordered list of upcoming implementation tasks.
 - [x] Reusable UI components
 
 ## Phase 2: Database & Data Layer
-- [ ] Set up Supabase project
-- [ ] Create database schema (see DATABASE.md)
-- [ ] Implement Supabase client (`src/lib/supabase.ts`)
-- [ ] Define TypeScript types for Account and Entry
+- [x] Set up Supabase project
+- [x] Create database schema (see DATABASE.md)
+- [x] Implement Supabase client (`src/lib/supabase.ts`)
+- [x] Define TypeScript types for Account and Entry
 
 ## Phase 3: Account Management
 - [ ] Account list page with real data

@@ -1,15 +1,16 @@
 # PocketLedger
 
-A personal finance tracker built with Next.js 15, TypeScript, and Tailwind CSS.
+A minimalist multi-currency finance tracker built with Next.js 15, TypeScript, and Tailwind CSS.
 
 ## Features
 
-- 📊 Dashboard with financial overview
-- 🏦 Account management
-- 📝 Transaction entries
-- 🌙 Dark/light mode
-- 📱 Responsive layout
-- 🔐 PIN-based access protection
+- Dashboard centered on total balance
+- Multi-currency account tracking
+- Entry tracking with `income`, `expense`, and `adjustment`
+- Grouped currency totals or unified base-currency conversion
+- Shared PIN-protected access for the MVP
+- Dark/light mode
+- Responsive layout
 
 ## Tech Stack
 
@@ -43,7 +44,7 @@ A personal finance tracker built with Next.js 15, TypeScript, and Tailwind CSS.
    npm install
    ```
 
-3. Copy the environment file and fill in your credentials:
+3. Copy the environment file and fill in your Supabase credentials:
    ```bash
    cp .env.example .env.local
    ```
@@ -54,26 +55,13 @@ A personal finance tracker built with Next.js 15, TypeScript, and Tailwind CSS.
    ```
    Both values are available in your Supabase project under **Settings → API**.
 
-4. Configure PIN-based access:
-
-   a. Generate a random session secret and add it to `.env.local`:
-   ```bash
-   echo "SESSION_SECRET=$(openssl rand -hex 32)" >> .env.local
+4. Review the current schema docs before applying database SQL:
+   ```text
+   The product and target schema docs are ahead of the current SQL migrations.
+   Read DATABASE.md before using supabase/migrations/* or supabase/seed.sql.
    ```
 
-   b. Hash your chosen PIN using the session secret and append the result to `.env.local`:
-   ```bash
-   node -e "require('./src/lib/auth').hashPin('YOUR_PIN').then(h => console.log('PIN_HASH=' + h))" >> .env.local
-   ```
-   Replace `YOUR_PIN` with the PIN you want to use (e.g. a 4–8 digit number).
-
-   For a deterministic local test PIN of `1234`, use:
-   ```bash
-   node -e "require('./src/lib/auth').hashPin('1234').then(h => console.log('PIN_HASH=' + h))" >> .env.local
-   ```
-   If `1234` currently says "Incorrect PIN", your existing `PIN_HASH` was generated from a different PIN or a different `SESSION_SECRET`.
-
-5. Apply the database migrations in the Supabase SQL editor (or via the Supabase CLI):
+5. Apply the current database migrations in the Supabase SQL editor (or via the Supabase CLI) only if you want the repository's current scaffolded schema:
    ```bash
    # With the Supabase CLI (recommended)
    supabase db push
@@ -85,7 +73,7 @@ A personal finance tracker built with Next.js 15, TypeScript, and Tailwind CSS.
    #   supabase/migrations/004_create_exchange_rate_cache.sql
    ```
 
-6. (Optional) Load sample data:
+6. (Optional) Load sample data from the current scaffold:
    ```bash
    # With the Supabase CLI
    supabase db seed
@@ -93,14 +81,14 @@ A personal finance tracker built with Next.js 15, TypeScript, and Tailwind CSS.
    # Or paste supabase/seed.sql in the SQL editor
    ```
 
-6. Start the development server:
+   Note: the current seed file reflects the older scaffolded schema, not the latest target schema described in `DATABASE.md`.
+
+7. Start the development server:
    ```bash
    npm run dev
    ```
 
-7. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-If you access the dev server from another device on your LAN, update `allowedDevOrigins` in [next.config.mjs](/Users/kyle/Documents/GitHub/PocketLedger/next.config.mjs) to include that host and restart `npm run dev`.
+8. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Project Structure
 
@@ -140,7 +128,7 @@ src/
 - [Product Spec](./PRODUCT_SPEC.md)
 - [Architecture](./ARCHITECTURE.md)
 - [Database Schema](./DATABASE.md)
-- [Copilot Notes](./COPILOT_NOTES.md)
+- [Codex Notes](./COPILOT_NOTES.md)
 - [TODO](./TODO.md)
 
 ## Development
